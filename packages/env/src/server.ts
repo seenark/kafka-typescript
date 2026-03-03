@@ -1,12 +1,14 @@
-import "dotenv/config";
-import { createEnv } from "@t3-oss/env-core";
-import { z } from "zod";
+import { config } from "@dotenvx/dotenvx"
+import Bun from "bun"
+import { Schema as S } from "effect"
+import { getEnvironment, getEnvPath } from "./env-path"
 
-export const env = createEnv({
-  server: {
-    CORS_ORIGIN: z.url(),
-    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  },
-  runtimeEnv: process.env,
-  emptyStringAsUndefined: true,
-});
+config({
+  path: getEnvPath(getEnvironment(), `${process.cwd()}/envs/server`),
+})
+
+const EnvSchema = S.Struct({
+  PORT: S.NumberFromString,
+})
+
+export const getEnv = () => S.decodeUnknownSync(EnvSchema)(Bun.env)
